@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>靜音艙使用預約系統 | CCC Kei Long College</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="i18n.js" defer></script>
+  <script src="index.js" defer></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+  <!-- Header -->
+  <header class="bg-blue-800 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold">中華基督教會基朗中學</h1>
+        <p class="text-blue-100 text-sm">靜音艙自主預約系統 (Silent Booth Booking Portal)</p>
+      </div>
+      
+      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+      <button type="button" data-language-toggle class="bg-blue-700 hover:bg-blue-800 px-3 py-2 rounded text-sm font-semibold transition">English</button>
+      <a href="../" class="inline-flex items-center rounded bg-blue-600 hover:bg-blue-700 px-4 py-2 text-sm font-semibold transition">
+        ← 平台首頁
+      </a>
+      </div>
+      
+      <!-- User Profile Profile Info -->
+      <div id="authProfileArea">
+        <div id="userProfile" class="hidden flex items-center gap-3">
+          <span id="userNameText" class="text-sm font-semibold"></span>
+          <a id="adminLink" href="admin.html" class="hidden bg-amber-600 hover:bg-amber-500 px-3 py-1.5 rounded text-xs font-semibold transition">
+            開啟管理頁面
+          </a>
+          <button id="logoutButton" type="button" class="bg-red-700 hover:bg-red-600 px-3 py-1.5 rounded text-xs transition">
+            登出
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Login Form Dashboard -->
+  <div id="guestOverlay" class="max-w-md mx-auto py-20 px-4">
+    <div class="bg-white p-8 rounded-lg shadow-md border border-slate-200">
+      <h2 class="text-xl font-bold text-slate-800 mb-2 text-center">用戶登入 (校內系統)</h2>
+      <p class="text-xs text-slate-400 text-center mb-6">使用學校 Google 帳戶，或本預約系統的電子郵件及密碼登入</p>
+
+      <p id="loginStatus" role="alert" class="hidden text-sm text-red-700 bg-red-50 border border-red-200 rounded p-3 mb-4"></p>
+
+      <div id="googleLoginArea" class="hidden mb-5 text-center">
+        <a id="googleLoginButton" href="api/auth/google/start" class="inline-flex rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" aria-label="使用學校 Google 帳戶登入">
+          <img src="google-signin-light.svg" width="180" height="40" alt="Sign in with Google">
+        </a>
+        <p class="text-xs text-slate-400 text-center mt-2">只接受已加入本系統的 @keilong.edu.hk 帳戶</p>
+        <div class="flex items-center gap-3 mt-5" aria-hidden="true">
+          <span class="h-px bg-slate-200 flex-1"></span>
+          <span class="text-xs text-slate-400">或使用密碼</span>
+          <span class="h-px bg-slate-200 flex-1"></span>
+        </div>
+      </div>
+      
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">電子郵件／教師姓名縮寫</label>
+          <input type="text" id="loginEmail" required placeholder="例如 student@keilong.edu.hk 或 ABCD" class="w-full border border-slate-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" autocomplete="username">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">密碼</label>
+          <input type="password" id="loginPassword" required placeholder="請輸入密碼" class="w-full border border-slate-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        </div>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-medium transition text-sm">
+          登入系統
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Booking Workspace -->
+  <main id="appWorkspace" class="hidden max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Guidelines and My Bookings -->
+    <div class="lg:col-span-1 space-y-6">
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold text-slate-900 border-b pb-2 mb-4">📢 靜音艙使用守則</h2>
+        <ol class="space-y-2.5 text-sm text-slate-600 list-decimal pl-4">
+          <li>每節使用時間以預約頁面顯示的<strong class="text-green-600">開始及結束時間</strong>為準。</li>
+          <li>每人每天最多可使用 <strong class="text-blue-800">兩節</strong> 時段。</li>
+          <li>每人每星期最多可預約 <strong class="text-blue-800">四節</strong> 時段（星期一至星期六計算）。</li>
+          <li>離開前<strong class="text-red-600">必須</strong>關閉所有電源插座與開關。</li>
+          <li>只可預約<strong class="text-blue-800">本星期星期一至星期六</strong>的時段；每逢星期一 00:00 開放新一週。</li>
+          <li><strong class="text-red-600">濫用條例：</strong> 如在 <strong class="text-red-600">7 日</strong>內<strong class="text-red-600">取消預約達 3 次</strong>，系統將暫停你的預約功能至最近一次取消後 7 日。</li>
+          <li>因老師調整時間表而被取消的預約<strong class="text-green-600">不計入取消次數，亦不會有任何處罰</strong>；請留意下方通知。</li>
+        </ol>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+        <h3 class="text-lg font-bold text-slate-900 mb-4">📋 我的預約紀錄</h3>
+        <div id="myBookingsList" class="space-y-3 text-sm text-slate-500">
+          載入中...
+        </div>
+      </div>
+
+      <section class="bg-white p-6 rounded-lg shadow-sm border border-slate-200" aria-labelledby="administrativeCancellationTitle">
+        <h3 id="administrativeCancellationTitle" class="text-lg font-bold text-slate-900 mb-2">🔔 時間表變更／取消通知</h3>
+        <p class="text-xs text-slate-500 mb-4">以下是老師調整造成的近期取消，不會計算取消次數或處罰；不會寄出電郵。</p>
+        <div id="administrativeCancellationList" class="space-y-3 text-sm text-slate-600" aria-live="polite">載入通知中…</div>
+      </section>
+    </div>
+
+    <!-- Booking Slots Board -->
+    <div class="lg:col-span-2 space-y-6">
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+        <h2 class="text-xl font-bold text-slate-900 mb-4">📅 選擇預約日期</h2>
+        
+        <div class="flex flex-col sm:flex-row gap-4 items-end mb-6">
+          <div class="flex-1">
+            <label for="bookingDate" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">使用日期</label>
+            <input type="date" id="bookingDate" required disabled aria-describedby="bookingDateHelp bookingWindowStatus" class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+            <p id="bookingDateHelp" class="text-xs text-slate-500 mt-1">可選日期由伺服器按香港時間設定，範圍為今天至本星期六。</p>
+          </div>
+          <div>
+            <button id="refreshScheduleButton" type="button" disabled class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded transition disabled:opacity-50 disabled:cursor-not-allowed">
+              查詢時段
+            </button>
+          </div>
+        </div>
+
+        <p id="bookingWindowStatus" role="status" aria-live="polite" class="text-sm text-blue-800 bg-blue-50 border border-blue-200 rounded p-3 mb-6">
+          正在載入可預約日期…
+        </p>
+        <p id="scheduleUpdateStatus" role="status" aria-live="polite" class="mb-4 text-xs text-slate-500">此頁開啟時每 15 秒核對最新時間表；查詢及提交時亦會再次核對。</p>
+
+        <div id="dayInfo" class="hidden p-4 rounded-lg mb-6 flex justify-between items-center bg-slate-50 border border-slate-200">
+          <div>
+            <span class="text-sm font-semibold block text-slate-500">當日運作模式</span>
+            <span id="activeModeName" class="font-bold text-lg text-blue-800">---</span>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">可用時段</h3>
+          <div id="slotsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Confirm Booking Modal -->
+  <div id="bookingModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+      <h3 class="text-lg font-bold text-slate-900 mb-4">確認預約該時段？</h3>
+      <div class="bg-slate-50 p-3 rounded text-sm space-y-1 mb-6">
+        <p><span class="text-slate-500">日期:</span> <strong id="modalDate"></strong></p>
+        <p><span class="text-slate-500">時段:</span> <strong id="modalSlot"></strong></p>
+        <p><span class="text-slate-500">學生:</span> <strong id="modalUser"></strong></p>
+      </div>
+      <div class="flex gap-3">
+        <button id="closeBookingModalButton" type="button" class="flex-1 bg-slate-100 hover:bg-slate-200 py-2 rounded font-medium transition text-sm">
+          取消
+        </button>
+        <button id="confirmBookingButton" type="button" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-medium transition text-sm">
+          確定預約
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancellation Modal -->
+  <div id="cancelModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+      <h3 class="text-lg font-bold text-slate-900 mb-2">確定取消預約？</h3>
+      <p class="text-xs text-slate-500 mb-4">注意：7 日內取消預約達 3 次，預約權限將暫停至最近一次取消後 7 日。</p>
+      
+      <form id="cancellationForm" class="space-y-4">
+        <input type="hidden" id="cancelBookingId">
+       <div>
+  <!-- Changed label to Optional (選填) and removed the "required" attribute below -->
+  <label class="block text-xs font-semibold text-slate-500 mb-1">請輸入取消原因 (選填)</label>
+  <input type="text" id="cancelReason" placeholder="可不填寫..." class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+       </div>
+        <div class="flex gap-3">
+          <button id="closeCancelModalButton" type="button" class="flex-1 bg-slate-100 hover:bg-slate-200 py-2 rounded font-medium transition">
+            保留預約
+          </button>
+          <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded font-medium transition">
+            確定取消
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "name": "silent-booth-booking-system",
+  "version": "2.6.0",
+  "private": true,
+  "description": "Silent booth booking system backed by MariaDB",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build:css": "tailwindcss -i ./styles.input.css -o ./public/styles.css --minify",
+    "check": "node --check server.js && node --check db.js && node --check app-base-path.js && node --check booking-window.js && node --check timetable.js && node --check timetable-service.js && node --check google-oauth.js && node --check cookie.js && node --check scripts/migrate-json.js && node --check scripts/create-admin.js && node --check scripts/check-database.js && node --check public/index.js && node --check public/admin.js && node --check public/student-csv-import.js && node scripts/check-inline.js && node scripts/check-base-path.js && node scripts/check-cookie.js && node scripts/check-booking-window.js && node scripts/check-timetable.js && node scripts/check-timetable-browser.js && node scripts/check-student-csv-import.js && node scripts/check-google-oauth.js && node scripts/check-student-import-jobs.js && node scripts/check-student-import-http.js",
+    "check:db": "node scripts/check-database.js",
+    "create:admin": "node scripts/create-admin.js",
+    "migrate:json": "node scripts/migrate-json.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.0",
+    "dotenv": "^17.0.0",
+    "express": "^5.0.0",
+    "express-rate-limit": "^8.0.0",
+    "google-auth-library": "11.0.2",
+    "helmet": "^8.0.0",
+    "mysql2": "^3.0.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

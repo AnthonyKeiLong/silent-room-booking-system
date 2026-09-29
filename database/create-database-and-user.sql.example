@@ -1,0 +1,20 @@
+-- Run as the MariaDB administrator.
+-- Replace CHANGE_ME_WITH_GENERATED_PASSWORD before running.
+
+CREATE DATABASE IF NOT EXISTS silent_booth_booking
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+CREATE USER IF NOT EXISTS 'silent_booth_app'@'127.0.0.1'
+  IDENTIFIED BY 'CHANGE_ME_WITH_GENERATED_PASSWORD';
+
+ALTER USER 'silent_booth_app'@'127.0.0.1'
+  IDENTIFIED BY 'CHANGE_ME_WITH_GENERATED_PASSWORD';
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+  ON silent_booth_booking.*
+  TO 'silent_booth_app'@'127.0.0.1';
+
+FLUSH PRIVILEGES;
+
+SHOW GRANTS FOR 'silent_booth_app'@'127.0.0.1';

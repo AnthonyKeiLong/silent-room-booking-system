@@ -1,0 +1,31 @@
+[Unit]
+Description=Silent Booth Booking System
+After=network-online.target mariadb.service
+Wants=network-online.target mariadb.service
+
+[Service]
+Type=simple
+User=silentbooth
+Group=silentbooth
+WorkingDirectory=/var/www/anthonyapp
+EnvironmentFile=/etc/silent-booth-booking.env
+ExecStart=/usr/bin/node /var/www/anthonyapp/server.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

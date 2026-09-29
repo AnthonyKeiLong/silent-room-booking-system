@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>靜音艙系統後台管理 | CCC Kei Long College</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="i18n.js" defer></script>
+  <script src="student-csv-import.js" defer></script>
+  <script src="admin.js" defer></script>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans">
+
+  <header class="bg-slate-900 text-slate-100 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-5 flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold">靜音艙系統管理員主面板</h1>
+        <p class="text-xs text-slate-400">CCC Kei Long College - Teacher Admin Portal</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" data-language-toggle class="bg-blue-700 hover:bg-blue-800 px-3 py-2 rounded text-sm font-semibold transition">English</button>
+        <a href="../" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded text-sm transition">← 平台首頁</a>
+      </div>
+    </div>
+  </header>
+
+  <div id="authLoading" class="max-w-7xl mx-auto p-12 text-center text-slate-500">
+    <p>正在進行身分安全性核對...</p>
+  </div>
+
+  <main id="adminMain" class="hidden max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <section class="lg:col-span-3 bg-white p-6 rounded-lg shadow-sm border border-slate-200" aria-labelledby="timetableTitle">
+      <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+        <div>
+          <h2 id="timetableTitle" class="text-xl font-bold text-slate-900">🕒 時間表與特殊日期管理</h2>
+          <p class="mt-2 text-sm text-slate-600">先預覽影響，再確認套用。儲存後會同步至伺服器資料庫；學生頁面開啟時每 15 秒核對更新，查詢與提交預約時也會核對最新時間表。</p>
+          <p class="mt-1 text-sm font-semibold text-blue-900">因時間表調整而失效的未來預約會被取消；學生可在預約頁面查看原因。不計入學生取消次數，亦不會有任何處罰。</p>
+          <p class="mt-1 text-xs text-slate-500">特殊日期不會突破本星期星期一至六的預約限制；星期日仍不開放。</p>
+        </div>
+        <button id="reloadTimetableButton" type="button" class="shrink-0 rounded border border-slate-300 bg-slate-50 px-3 py-2 text-sm hover:bg-slate-100 disabled:opacity-50">重新載入時間表</button>
+      </div>
+      <p id="timetableStatus" role="status" aria-live="polite" tabindex="-1" class="mb-3 text-sm text-slate-600">正在載入時間表…</p>
+      <p id="timetableError" role="alert" class="hidden mb-3 text-sm font-semibold text-red-700"></p>
+      <p id="timetableNotificationNote" class="mb-5 rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">本版本暫不發送電郵通知。如有受影響預約，學生需登入預約頁面查看取消通知及原因。</p>
+
+      <fieldset id="timetableControls" disabled class="min-w-0">
+        <legend class="sr-only">編輯時間表及特殊日期</legend>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2">
+            <h3 class="font-bold text-slate-800 mb-2">1. 編輯各模式的開放時段</h3>
+            <p class="text-xs text-slate-500 mb-3">可新增、移除或修改開始及結束時間。時段不得重疊；模式名稱保持不變。每個模式需分別預覽及套用。</p>
+            <div id="modeSlotEditors" class="space-y-4"></div>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-800 mb-2">2. 設定特殊日期／恢復正常時間表</h3>
+            <form id="calendarModeForm" class="space-y-4 rounded border border-slate-200 bg-slate-50 p-4">
+              <div>
+                <label for="startDate" class="block text-xs font-semibold text-slate-600 mb-1">開始日期（香港時間）</label>
+                <input type="date" id="startDate" required class="w-full border border-slate-300 rounded p-2 text-sm">
+              </div>
+              <div>
+                <label for="endDate" class="block text-xs font-semibold text-slate-600 mb-1">結束日期（留空代表只設定開始日期當日）</label>
+                <input type="date" id="endDate" class="w-full border border-slate-300 rounded p-2 text-sm">
+              </div>
+              <div>
+                <label for="targetMode" class="block text-xs font-semibold text-slate-600 mb-1">日期範圍使用的時間表</label>
+                <select id="targetMode" class="w-full border border-slate-300 rounded p-2 text-sm"></select>
+                <p class="mt-1 text-xs text-slate-500">選擇「恢復正常時間表」會清除此範圍內的特殊日期設定。</p>
+              </div>
+              <button type="submit" class="w-full rounded bg-blue-700 py-2 text-sm font-semibold text-white hover:bg-blue-800">預覽日期變更影響</button>
+            </form>
+            <h4 class="mt-5 mb-2 text-sm font-bold text-slate-800">已設定的特殊日期</h4>
+            <div class="max-h-[400px] overflow-y-auto border border-slate-200 rounded">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50"><tr><th scope="col" class="p-2">日期</th><th scope="col" class="p-2">時間表</th></tr></thead>
+                <tbody id="calendarOverridesTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <section id="timetablePreviewPanel" class="hidden mt-6 rounded border border-amber-300 bg-amber-50 p-4" aria-labelledby="timetablePreviewTitle">
+        <h3 id="timetablePreviewTitle" class="text-lg font-bold text-slate-900" tabindex="-1">確認時間表變更</h3>
+        <p id="timetablePreviewSummary" class="mt-2 text-sm text-slate-700"></p>
+        <p id="timetablePreviewImpact" class="mt-2 text-sm font-semibold text-slate-900"></p>
+        <p id="timetablePreviewExpiry" class="mt-1 text-xs text-slate-600"></p>
+        <div class="mt-3 max-h-[400px] overflow-auto rounded border border-amber-200 bg-white">
+          <table class="w-full text-left text-xs">
+            <caption class="sr-only">套用後將取消的預約</caption>
+            <thead class="bg-slate-50"><tr><th scope="col" class="p-2">日期</th><th scope="col" class="p-2">原時段</th><th scope="col" class="p-2">學生</th><th scope="col" class="p-2">登入電郵（不會寄信）</th></tr></thead>
+            <tbody id="timetableAffectedBookings"></tbody>
+          </table>
+        </div>
+        <p id="timetablePreviewWarning" role="alert" class="mt-3 text-sm font-semibold text-red-700"></p>
+        <label class="mt-4 flex items-start gap-2 text-sm text-slate-800">
+          <input id="confirmTimetableImpact" type="checkbox" class="mt-1">
+          <span>我已核對以上變更及受影響名單，確認套用；如有受影響預約，同意取消並在學生預約頁面顯示通知。學生不會被扣次數或處罰；本次不會寄出電郵。</span>
+        </label>
+        <div class="mt-4 flex flex-col sm:flex-row gap-3">
+          <button id="applyTimetableButton" type="button" disabled class="rounded bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed">確認套用至資料庫</button>
+          <button id="discardTimetablePreviewButton" type="button" class="rounded border border-slate-300 bg-white px-4 py-2 text-sm hover:bg-slate-100">返回編輯（不套用）</button>
+        </div>
+      </section>
+    </section>
+    
+    <!-- Left Configuration Column -->
+    <div class="space-y-6 lg:col-span-1">
+      
+      <!-- Password Accounts Whitelist Manager -->
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold text-slate-900 mb-2">🎓 帳戶與密碼管理名單</h2>
+        <p class="text-xs text-slate-500 mb-4">在此新增、編輯或刪除學生及教職員帳戶資料。</p>
+
+        <section id="studentCsvPanel" class="mb-4 rounded border border-blue-200 bg-blue-50 p-3" aria-labelledby="studentCsvTitle">
+          <h3 id="studentCsvTitle" class="text-sm font-bold text-blue-950">📥 從 CSV 批量建立學生及教師帳戶</h3>
+          <p id="studentCsvHelp" class="mt-1 text-xs leading-5 text-blue-900">
+            必填欄：email、password、display_name。role 填 student 或 teacher；teacher 必須填 2 至 4 個英文字母的 username（登入時可使用該縮寫）；student 的 username 留空。舊檔案沒有 role 欄時預設 student。class_name 可選。
+          </p>
+
+          <details class="mt-2 text-xs text-blue-900">
+            <summary class="cursor-pointer font-semibold">檔案格式與安全提示</summary>
+            <div class="mt-2 space-y-1 rounded bg-white p-2 text-slate-700">
+              <p>檔案必須是 UTF-8 CSV，沒有固定帳戶數量上限，每個檔案最多 512 KiB，密碼最少 10 個字元且每人不同。</p>
+              <p><code class="break-all">email,password,display_name,class_name,role,username</code></p>
+              <p>下載範本包含學生及教師示例，密碼欄留空；匯入前請填寫不同的安全密碼並核對角色。</p>
+              <p>現有或重複的電郵會令整次匯入取消；不會刪除或修改任何現有帳戶。</p>
+              <p class="font-semibold text-red-700">CSV 內含明文密碼。只可在正式 HTTPS 網站使用，匯入後請安全刪除原檔並以安全方式向帳戶使用者發放密碼。</p>
+            </div>
+          </details>
+
+          <label for="studentCsvFile" class="mt-3 block text-xs font-semibold text-slate-700">選擇 CSV 檔案</label>
+          <input
+            id="studentCsvFile"
+            type="file"
+            accept=".csv,text/csv"
+            aria-describedby="studentCsvHelp studentCsvStatus studentCsvError"
+            class="mt-1 block w-full rounded border border-slate-300 bg-white p-2 text-xs file:mr-2 file:rounded file:border-0 file:bg-blue-100 file:px-2 file:py-1 file:font-semibold file:text-blue-800 hover:file:bg-blue-200"
+          >
+
+          <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <button id="downloadStudentCsvTemplateButton" type="button" class="rounded border border-blue-300 bg-white px-3 py-2 text-xs font-semibold text-blue-800 hover:bg-blue-100">
+              下載 CSV 範本
+            </button>
+            <button id="importStudentsButton" type="button" disabled class="rounded bg-blue-700 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50">
+              確認匯入帳戶
+            </button>
+          </div>
+
+          <p id="studentCsvStatus" class="mt-2 text-xs text-slate-600" aria-live="polite" tabindex="-1">尚未選擇 CSV 檔案。</p>
+          <p id="studentCsvError" class="mt-2 hidden text-xs font-semibold text-red-700" role="alert"></p>
+        </section>
+
+        <div id="accountEditorControls">
+          <div id="usersListContainer" class="space-y-4 max-h-[400px] overflow-y-auto mb-4 border border-slate-200 p-2 rounded bg-slate-50">
+            <!-- Dynamically Generated User Cards -->
+          </div>
+
+          <button id="addUserButton" type="button" class="w-full mb-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-1.5 rounded transition text-xs border border-dashed border-slate-400">
+            + 新增使用者帳戶
+          </button>
+
+          <button id="saveUsersButton" type="button" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2 rounded transition text-sm">
+            確認儲存帳戶變更
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Active Reservations & Audit Trails column -->
+    <div class="lg:col-span-2 space-y-6">
+      
+      <!-- Operational Calendar Monitor -->
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">🔍 預約管理與即場取消</h2>
+            <p class="text-xs text-slate-500">在此檢視、取消，或直接釋放該時段。</p>
+          </div>
+          <input type="date" id="adminQueryDate" class="border border-slate-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                <th class="p-3">時段</th>
+                <th class="p-3">學生班別</th>
+                <th class="p-3">學生姓名</th>
+                <th class="p-3">電郵</th>
+                <th class="p-3 text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody id="adminBookingsTable" class="divide-y divide-slate-100">
+              <tr>
+                <td colspan="5" class="p-4 text-center text-slate-400">載入預約時程中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Cancellation Logs Visual Tracker -->
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+        <h2 class="text-lg font-bold text-slate-900 mb-2">📋 學生取消紀錄與原因審查</h2>
+        <p class="text-xs text-slate-500 mb-4">此處列出學生的取消記錄；學生在 7 日內累積取消達 3 次，預約權限將暫停至最近一次取消後 7 日。</p>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                <th class="p-3">時間</th>
+                <th class="p-3">學生</th>
+                <th class="p-3">預約時段</th>
+                <th class="p-3">取消原因</th>
+              </tr>
+            </thead>
+            <tbody id="cancelLogsTable" class="divide-y divide-slate-100">
+              <tr>
+                <td colspan="4" class="p-4 text-center text-slate-400">暫無取消歷史記錄</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</body>
+</html>
